@@ -223,8 +223,9 @@ class Opinion_extract(object):
 			self.data.append((sen,pos))
 		return
 
-	def _ner_compile(self, Ner):
-		self.tagl = Ner._model_predict_batch(self.data)
+	def _ner_compile(self, result):
+		# self.tagl = Ner._model_predict_batch(self.data)
+		self.tagl = result
 		self.tagl = tag_process(self.senl, self.tagl)
 		with open("ner.res", "w", encoding="utf-8") as fid:
 			for i in range(len(self.data)):
@@ -294,7 +295,7 @@ if __name__ == "__main__":
 	Opi._reader("./src_data/Test_reviews.csv", "file")
 	#Opi._reader("./data/test_content.csv", "file")
 	Opi._pos_compile()
-	Opi._ner_compile(Ner(Config))
+	Opi._ner_compile()
 	Opi._par_compile_()
 	Opi._cla_compile(Cla(Config))
 	Opi._writer("./result/Result.csv")

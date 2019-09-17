@@ -56,25 +56,48 @@ class logger(object):
 		return
 
 	def parser(self, file):
-		posC = {"包装":"_BZ",
-				"成分":"_CF",
-				"尺寸":"_CC",
-				"服务":"_FW",
-				"功效":"_GX",
-				"价格":"_JG",
-				"气味":"_QW",
-				"使用体验":"_SY",
-				"物流":"_WL",
-				"新鲜度":"_XX",
-				"真伪":"_ZW",
-				"整体":"_ZT",
-				"其他":"_QT"}
-		posD = {"正面":"_P",
-				"负面":"_N",
-				"中性":"_M"}
+		# posC = {"包装":"_BZ",
+		# 		"成分":"_CF",
+		# 		"尺寸":"_CC",
+		# 		"服务":"_FW",
+		# 		"功效":"_GX",
+		# 		"价格":"_JG",
+		# 		"气味":"_QW",
+		# 		"使用体验":"_SY",
+		# 		"物流":"_WL",
+		# 		"新鲜度":"_XX",
+		# 		"真伪":"_ZW",
+		# 		"整体":"_ZT",
+		# 		"其他":"_QT"}
+		# posD = {"正面":"_P",
+		# 		"负面":"_N",
+		# 		"中性":"_M"}
+		posC = {"功效": "GX",
+				"成分": "CF",
+				"气味": "QW",
+				  "包装": "BZ",
+				  "新鲜度": "XXD",
+				  "价格": "JG",
+				  "其他": "QT",
+				  "使用体验": "SYTY",
+				  "整体": "ZT",
+				  "尺寸": "CC",
+				  "服务": "FW",
+				  "物流": "WL",
+				  "真伪": "ZW"}
+		posD = {"正面": "ZM",
+					"负面": "FM",
+					"中性": "ZX"}
 		fid = open(file, "w", encoding="utf-8")
 		for i in self.dictionary.keys():
 			sen = self.dictionary[i]["sen"]
+			# sen = sen.lstrip()
+			# sen =sen.rstrip()
+			# sen = sen.replace("\"", "")
+			sen = sen.replace(',', '，')
+			sen = sen.replace('"', '')
+			print(sen)
+			print(i)
 			lab = self.dictionary[i]["lab"]
 			tag = ["U"]*len(sen)
 			iterN = 0
@@ -93,9 +116,17 @@ class logger(object):
 			
 if __name__ == "__main__":
 
-	file1 = sys.argv[1]
-	file2 = sys.argv[2]
-	file3 = sys.argv[3]
+	# file1 = sys.argv[1]
+	# file2 = sys.argv[2]
+	# file3 = sys.argv[3]
+	# test = '"少打了,多两节课",dsfdsf'
+	# result = test.split(",")
+	# test = test.replace(',', '，')
+	# test = test.replace('"', '')
+	# print(test)
 	log = logger()
+	file1 = "../data/concat_test_content.csv"
+	file2 = "../data/concat_test_label.csv"
+	file3 = "../data/concat_test.ner.v2"
 	log.reader(file1, file2)
 	log.parser(file3)
