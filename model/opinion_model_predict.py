@@ -9,7 +9,7 @@ import numpy as np
 import jieba
 import jieba.posseg as pseg
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 config = Config()
 MyModel = EmbedBilstmCrfModel(config)
@@ -31,6 +31,15 @@ def postag(x):
 ##将训练数据字符id化
 char_dict = pickle.load(open("../data/char_vocabulary_dict.pkl", "rb"))
 tag_dict = pickle.load(open("../data/tag_vocabulary_dict.pkl", "rb"))
+##把tag-dict改一下
+tag_dict_tmp = set()
+for tag, id in tag_dict.items():
+    if "O" not in tag:
+        tag = 'U'
+    tag_dict_tmp.add(tag)
+tag_dict.clear()
+for i, tag in enumerate(tag_dict_tmp):
+    tag_dict[tag] = i
 word_dict = pickle.load(open("../data/word_vocabulary_dict.pkl", "rb"))
 pos_dict = pickle.load(open("../data/pos_vocabulary_dict.pkl", "rb"))
 
@@ -47,7 +56,7 @@ def id2char(sentence, dict):
         result.append(id1)
     return result
 
-test_file = open("../data/concat_test.ner.v2", "r")
+test_file = open("../data/concat_O_test.ner.v2", "r")
 x_test_sentence_list = list()
 y_test_sentence_list = list()
 x_test_word_list = list()
@@ -100,24 +109,22 @@ for poses in list(concat_test_data["poses"]):
 x_test_poses_list = pad_sequences(x_test_poses_list, maxlen=config.max_word_len, truncating="post", padding="post")
 # model = load_model("embed_bilstm_crf_model.h5")
 # result = model.evaluate(x=x_test, y=y_test, verbose = 1)
-for i in range(5):
-    model.load_weights("concat_embed_bilstm_crf_model{}.h5".format(i))
-    results = model.predict(x=[x_test,x_test_words_list, x_test_poses_list],batch_size=64, verbose=1)
-    results1 = np.argmax(results,axis=2)
-    x_test_sentence_str = list()
-    y_test_sentence_str = list()
-    file_name = "result_ner{}".format(i)
-    write_file = open(file_name, "w")
-    for sentence, tags in zip(x_test, results1):
-        sentence_str = id2char(sentence, char_dict)
-        # tags = [i+1 for i in tags]
-        tags_str = id2char(tags, tag_dict)
-        x_test_sentence_str.append(sentence_str)
-        y_test_sentence_str.append(tags_str)
-        for word, tag in zip(sentence_str, tags_str):
-            if word=="-3" or word==-3:
-                continue
-            write_file.write(str(word)+"\t"+str(tag)+"\n")
-        write_file.write("\n")
-    write_file.close()
+model.load_weights("O_concat_embed_bilstm_crf_model.h5")
+results = model.predict(x=[x_test,x_test_words_list, x_test_poses_list],batch_size=64, verbose=1)
+results1 = np.argmax(results,axis=2)
+x_test_sentence_str = list()
+y_test_sentence_str = list()
+write_file = open("O_result_ner", "w")
+for sentence, tags in zip(x_test, results1):
+    sentence_str = id2char(sentence, char_dict)
+    # tags = [i+1 for i in tags]
+    tags_str = id2char(tags, tag_dict)
+    x_test_sentence_str.append(sentence_str)
+    y_test_sentence_str.append(tags_str)
+    for word, tag in zip(sentence_str, tags_str):
+        if word=="-3" or word==-3:
+            continue
+        write_file.write(str(word)+"\t"+str(tag)+"\n")
+    write_file.write("\n")
+write_file.close()
 print("ddd")

@@ -111,7 +111,8 @@ class logger(object):
 			sen = strQ2B(sen).replace(" ","")
 			tag = [tag[i] for i in range(len(tag)) if i not in idSet]
 			for l in range(len(sen)):
-				fid.write(sen[l]+"\t"+tag[l]+"\n")
+				# fid.write(sen[l]+"\t"+tag[l]+"\n")
+				fid.write(sen[l]+"\t"+("U" if "O" not in tag[l] else tag[l]) +"\n" )
 			fid.write("\n")
 			
 if __name__ == "__main__":
@@ -127,6 +128,6 @@ if __name__ == "__main__":
 	log = logger()
 	file1 = "../data/concat_test_content.csv"
 	file2 = "../data/concat_test_label.csv"
-	file3 = "../data/concat_test.ner.v2"
+	file3 = "../data/concat_O_test.ner.v2"
 	log.reader(file1, file2)
 	log.parser(file3)

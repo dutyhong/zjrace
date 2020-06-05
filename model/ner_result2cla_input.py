@@ -175,6 +175,7 @@ def parserE(dic, segl, labl, ids, rely_id, relation):
 
 
 def _par_compile_(idsl, senl, tagl):
+    # len1 =
     dic = {}
     LTP_DATA_DIR = "/Users/duty/downloads/ltp_data_v3.4.0"
     postagger = Postagger()
@@ -224,7 +225,7 @@ if __name__ == "__main__":
     tag_list = list()
     for line in ner_file.readlines():
         if (len(line) > 2):
-            columns = line.split(" ")
+            columns = line.split("\t")
             if (len(columns) != 2):
                 continue
             else:
@@ -248,9 +249,13 @@ if __name__ == "__main__":
         for ch, tag in zip(sentence, tags):
             tag_list.append(tag)
         tagl.append(tag_list)
+
+    print(len(idsl), len(senl), len(tagl))
+    print([(senl[k], tagl[k]) for k in range(len(senl)) if len(senl[k])!=len(tagl[k])])
+
     result = _par_compile_(idsl, senl, tagl)
     # result_file = open("../data/result.csv", "w")
-    result_file = open("../data/ner_result.csv", "w")
+    result_file = open("../data/concat_ner_result.csv", "w")
     # result_file.write("index,aspect_content,sen_content\n")
     result_file.write("id,Aspect_terms,Opinion_terms,sen_content\n")
     # for (i, aspect_content, sen_content) in result:
@@ -260,7 +265,7 @@ if __name__ == "__main__":
     for (i, aspect_content, sen_content) in result:
         result_file.write(str(i+1)+","+aspect_content+","+sen_content+"\n")
     result_file.close()
-    result_data = pd.read_csv("../data/result.csv")
+    result_data = pd.read_csv("../data/concat_result.csv")
     ##读取对应的原始content数据
     # test_data = pd.read_csv("../data/test_content.csv", header=None)
     # test_data.to_csv("../data/test_content_index.csv", index=True, header=["id", "Reviews"])

@@ -42,24 +42,20 @@ def bigram(x):
         char_before = char_after
     return bigram_list
 
-##将训练集进行交叉验证
-def vary_data_train(concat_train_data, x_train, validation_cnt = 5):
-    train_validation_indices = vary_data(concat_train_data, validation_cnt)
-    train_validation_sets = []
-    for i in range(len(train_validation_indices)):
-        train_validation_set = []
-        for j in range(len(x_train)):
-            if j in train_validation_indices[i]:
-                train_validation_set.append(x_train[j])
-        train_validation_sets.append(train_validation_set)
-    return train_validation_sets
-
 config = Config()
-
 ##数据预处理
 ##将训练数据字符id化
 char_dict = pickle.load(open("../data/char_vocabulary_dict.pkl", "rb"))
 tag_dict = pickle.load(open("../data/tag_vocabulary_dict.pkl", "rb"))
+##把tag-dict改一下
+tag_dict_tmp = set()
+for tag, id in tag_dict.items():
+    if "O" not in tag:
+        tag = 'U'
+    tag_dict_tmp.add(tag)
+tag_dict.clear()
+for i, tag in enumerate(tag_dict_tmp):
+    tag_dict[tag] = i
 word_dict = pickle.load(open("../data/word_vocabulary_dict.pkl", "rb"))
 pos_dict = pickle.load(open("../data/pos_vocabulary_dict.pkl", "rb"))
 concat_train_data = pd.read_csv("../data/concat_train_content.csv", header=None)
@@ -72,7 +68,7 @@ concat_train_data["poses"] = concat_train_data["reviews"].apply(postag)
 concat_test_data["poses"] = concat_test_data["reviews"].apply(postag)
 
 
-train_file = open("../data/concat_train.ner.v2", "r")
+train_file = open("../data/concat_O_train.ner.v2", "r")
 x_sentence_list = list()
 y_sentence_list = list()
 x_word_list = list()
@@ -89,8 +85,6 @@ for line in train_file.readlines():
         y_word_list = list()
 x_train = x_sentence_list
 y_train = y_sentence_list
-x_train_validation_sets = vary_data_train(concat_train_data, x_train, 5)
-y_train_validation_sets = vary_data_train(concat_train_data, y_train, 5)
 
 
 
@@ -101,7 +95,7 @@ for words in list(concat_train_data["reviews"]):
     for word in words.split(" "):
         x_word_list.append(word_dict.get(word, 0))
     x_train_words_list.append(x_word_list)
-# x_train_words_list = pad_sequences(x_train_words_list, maxlen=config.max_word_len, truncating="post", padding="post")
+x_train_words_list = pad_sequences(x_train_words_list, maxlen=config.max_word_len, truncating="post", padding="post")
 ###标注
 x_train_poses_list = []
 for poses in list(concat_train_data["poses"]):
@@ -109,38 +103,14 @@ for poses in list(concat_train_data["poses"]):
     for pos in poses.split(" "):
         x_pos_list.append(pos_dict.get(pos, 0))
     x_train_poses_list.append(x_pos_list)
-# x_train_poses_list = pad_sequences(x_train_poses_list, maxlen=config.max_word_len, truncating="post", padding="post")
-x_train_validation_sets = vary_data_train(concat_train_data, x_train, 5)
-x_train_words_validation_sets = vary_data_train(concat_train_data, x_train_words_list, 5)
-x_train_poses_validation_sets = vary_data_train(concat_train_data, x_train_poses_list, 5)
-y_train_validation_sets = vary_data_train(concat_train_data, y_train, 5)
+x_train_poses_list = pad_sequences(x_train_poses_list, maxlen=config.max_word_len, truncating="post", padding="post")
 
-x_train_validation_pad_sets = []
-for x_train_validation_set in x_train_validation_sets:
-    x_train_validation_set = pad_sequences(x_train_validation_set, maxlen=config.max_len, truncating="post", padding="post")
-    x_train_validation_pad_sets.append(x_train_validation_set)
-x_train_words_validation_pad_sets = []
-for x_train_words_validation_set in x_train_words_validation_sets:
-    x_train_words_validation_set = pad_sequences(x_train_words_validation_set, maxlen=config.max_word_len, truncating="post", padding="post")
-    x_train_words_validation_pad_sets.append(x_train_words_validation_set)
-x_train_poses_validation_pad_sets = []
-for x_train_poses_validation_set in x_train_poses_validation_sets:
-    x_train_poses_validation_set = pad_sequences(x_train_poses_validation_set, maxlen=config.max_word_len, truncating="post", padding="post")
-    x_train_poses_validation_pad_sets.append(x_train_poses_validation_set)
-
-y_train_validation_pad_sets = []
-for y_train_validation_set in y_train_validation_sets:
-    y_train_validation_set = pad_sequences(y_train_validation_set, maxlen=config.max_len, truncating="post", padding="post")
-    y_train_validation_pad_sets.append(np.expand_dims(y_train_validation_set,2))
-# y_train_validation_pad_sets = np.expand_dims(y_train_validation_pad_sets, 3)
-
-# x_train = pad_sequences(x_train, maxlen=config.max_len, truncating="post", padding="post")
-# y_train = pad_sequences(y_train, maxlen=config.max_len, truncating="post", padding="post")
-# y_train = np.expand_dims(y_train, 2)
+x_train = pad_sequences(x_train, maxlen=config.max_len, truncating="post", padding="post")
+y_train = pad_sequences(y_train, maxlen=config.max_len, truncating="post", padding="post")
+y_train = np.expand_dims(y_train, 2)
 
 
-test_validation_indices = vary_data(concat_test_data, 5)
-test_file = open("../data/concat_test.ner.v2", "r")
+test_file = open("../data/concat_O_test.ner.v2", "r")
 x_test_sentence_list = list()
 y_test_sentence_list = list()
 x_test_word_list = list()
@@ -176,20 +146,13 @@ for poses in list(concat_test_data["poses"]):
         x_pos_list.append(pos_dict.get(pos, 0))
     x_test_poses_list.append(x_pos_list)
 x_test_poses_list = pad_sequences(x_test_poses_list, maxlen=config.max_word_len, truncating="post", padding="post")
-# callbacks = [EarlyStopping(monitor="val_loss", patience=20, verbose=1)]
-# EarlyStopping()
+
 RaceModel = EmbedBilstmCrfModel(config)
 # model = RaceModel.embed_bilstm_crf_model()
 # model = RaceModel.embed_bilstm_crf_model()
 # model = RaceModel.embed_char_bilstm_crf_model()
 model = RaceModel.embed_bilstm_crf_model_with_pos()
-for i in range(5):
-    # model.fit(x=[x_train,x_train_words_list, x_train_poses_list], y=y_train, epochs=10, batch_size=64,
-    #           validation_data=([x_test,x_test_words_list, x_test_poses_list], y_test), verbose=1)
-    model.fit(x=[x_train_validation_pad_sets[i], x_train_words_validation_pad_sets[i], x_train_poses_validation_pad_sets[i]],
-              y=y_train_validation_pad_sets[i], epochs=5, batch_size=64, validation_data=([x_test,x_test_words_list, x_test_poses_list], y_test),
+model.fit(x=[x_train, x_train_words_list, x_train_poses_list],
+              y=y_train, epochs=5, batch_size=64, validation_data=([x_test,x_test_words_list, x_test_poses_list], y_test),
               verbose=1)
-    model.save_weights("concat_embed_bilstm_crf_model{}.h5".format(i))
-print("ddd")
-
-#####根据makeup和laptop总的训练数据训练模型（因为这两个数据有很多类别相似性:价格， 物流，真伪，服务，包装，其他）
+model.save_weights("O_concat_embed_bilstm_crf_model.h5")
